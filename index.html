@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valentine Experience</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+
 body{
 font-family:'Poppins',sans-serif;
 min-height:100vh;
@@ -19,11 +21,15 @@ justify-content:center;
 align-items:center;
 padding:20px;
 overflow:hidden;
+transition:filter 1.2s ease;
 }
+
 @keyframes bgShift{
 0%,100%{background-position:0% 50%}
 50%{background-position:100% 50%}
 }
+
+/* SCENES */
 .scene{
 display:none;
 text-align:center;
@@ -34,23 +40,29 @@ background:rgba(0,0,0,0.55);
 backdrop-filter:blur(18px);
 border-radius:22px;
 box-shadow:0 30px 80px rgba(0,0,0,0.6);
-animation:fade 0.5s ease;
+opacity:0;
+transform:scale(0.95);
+transition:opacity 0.6s ease, transform 0.6s ease;
 }
-.active{display:block}
-@keyframes fade{
-from{opacity:0;transform:translateY(20px)}
-to{opacity:1;transform:translateY(0)}
+
+.scene.active{
+display:block;
+opacity:1;
+transform:scale(1);
 }
+
 h1{
 font-family:'Great Vibes',cursive;
 font-size:clamp(2.6rem,7vw,3.4rem);
 margin-bottom:18px;
 }
+
 p{
 font-size:1.05rem;
 line-height:1.6;
 opacity:0.95;
 }
+
 .btn{
 margin:12px 6px;
 padding:13px 28px;
@@ -61,9 +73,12 @@ font-weight:600;
 cursor:pointer;
 transition:0.3s ease;
 }
+
 .primary{background:#b3122d;color:white;box-shadow:0 0 20px rgba(179,18,45,0.8)}
 .secondary{background:rgba(255,255,255,0.18);color:white}
+
 .btn:hover{transform:scale(1.06)}
+
 .whatsapp{
 display:inline-block;
 margin-top:18px;
@@ -74,18 +89,35 @@ color:white;
 text-decoration:none;
 font-weight:600;
 }
-/* YES Explosion */
-@keyframes burst{
-0%{transform:scale(0);opacity:1}
-100%{transform:scale(2.5);opacity:0}
+
+/* YES Glow */
+@keyframes glowPulse{
+0%{box-shadow:0 0 20px #ff4d6d}
+50%{box-shadow:0 0 60px #ff99ac}
+100%{box-shadow:0 0 20px #ff4d6d}
 }
-/* NO Dramatic Collapse */
-@keyframes collapse{
-0%{transform:scale(1);filter:blur(0)}
-50%{transform:scale(0.92);filter:blur(3px)}
-100%{transform:scale(1);filter:blur(0)}
+
+/* Confetti */
+@keyframes confettiFall{
+0%{transform:translateY(-100vh) rotate(0deg);opacity:1}
+100%{transform:translateY(100vh) rotate(720deg);opacity:0}
 }
-/* Screen vignette */
+
+/* Shake */
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+20%{transform:translateX(-12px)}
+40%{transform:translateX(12px)}
+60%{transform:translateX(-8px)}
+80%{transform:translateX(8px)}
+}
+
+/* Sad mode */
+.sadMode{
+filter:grayscale(100%) brightness(0.6);
+}
+
+/* Vignette */
 .vignette{
 position:fixed;
 top:0;
@@ -100,19 +132,24 @@ z-index:4;
 }
 </style>
 </head>
+
 <body>
+
 <div class="vignette" id="vignette"></div>
+
 <div class="scene active" id="scene1">
 <h1>Hey Fousiya💕</h1>
 <p id="introText"></p>
 <button class="btn primary" onclick="nextScene(2)">Continue</button>
 </div>
+
 <div class="scene" id="scene2">
 <h1>Something Honest</h1>
 <p id="storyText"></p>
 <button class="btn primary" onclick="nextScene(3)">Continue</button>
 <button class="btn secondary" onclick="nextScene(1)">Back</button>
 </div>
+
 <div class="scene" id="scene3">
 <h1>One Question</h1>
 <p>Will you be my Valentine? </p>
@@ -120,6 +157,7 @@ z-index:4;
 <button class="btn secondary" onclick="noPath()">No</button>
 <button class="btn secondary" onclick="nextScene(2)">Back</button>
 </div>
+
 <div class="scene" id="scene4">
 <h1 id="resultTitle"></h1>
 <p id="resultText"></p>
@@ -130,11 +168,24 @@ z-index:4;
 </div>
 <button class="btn secondary" onclick="nextScene(3)">Back</button>
 </div>
+
 <script>
+
+/* SOUNDS */
+const yesSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3");
+const noSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-player-losing-or-failing-2042.mp3");
+const popSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-small-win-2020.mp3");
+
+/* SCENE TRANSITION */
 function nextScene(n){
-document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active'));
+document.querySelectorAll('.scene').forEach(s=>{
+s.classList.remove('active');
+});
+setTimeout(()=>{
 document.getElementById('scene'+n).classList.add('active');
+},100);
 }
+
 /* TYPE TEXT */
 function typeText(el,text){
 let i=0;
@@ -148,56 +199,73 @@ setTimeout(t,30);
 }
 t();
 }
+
 typeText(introText,"Most people pull up with roses and chocolates. I pulled up with effort and code.");
 setTimeout(()=>{
 typeText(storyText,"We don’t really know each other yet, but from what I’ve seen, your vibe’s kinda unmatched. I’d genuinely love to get to know you better if you’re cool with that.");
 },1800);
-/* YES EFFECT 10/10 */
+
+/* YES EFFECT */
 function yesPath(){
+yesSound.play();
 nextScene(4);
-for(let i=0;i<130;i++){
-let el=document.createElement('div');
-el.innerHTML=['','',''][Math.floor(Math.random()*3)];
-el.style.position='fixed';
-el.style.left='50%';
-el.style.top='50%';
-el.style.fontSize=(22+Math.random()*20)+'px';
-el.style.animation='burst 1.4s ease forwards';
-let angle=Math.random()*2*Math.PI;
-let radius=200+Math.random()*250;
-el.style.transform=`translate(${Math.cos(angle)*radius}px,${Math.sin(angle)*radius}px)`;
-document.body.appendChild(el);
-setTimeout(()=>el.remove(),1500);
+
+let s4=document.getElementById("scene4");
+s4.style.animation="glowPulse 2s infinite";
+
+for(let i=0;i<120;i++){
+let conf=document.createElement("div");
+conf.innerHTML=["💖","✨","💕"][Math.floor(Math.random()*3)];
+conf.style.position="fixed";
+conf.style.left=Math.random()*100+"vw";
+conf.style.fontSize=(16+Math.random()*24)+"px";
+conf.style.animation="confettiFall 3s linear forwards";
+document.body.appendChild(conf);
+setTimeout(()=>conf.remove(),3000);
 }
+
+popSound.play();
+
+/* YOUR ORIGINAL TEXT BELOW — UNCHANGED */
 resultTitle.innerHTML="Wait… hold on. Are you actually serious right now? ";
 resultText.innerHTML="Okay wow. You just low-key made my entire day.";
 finalExtra.innerHTML="I actually made this. Yeah — it’s Ameer, your friendly neighbourhood senior. And since you made it all the way here… I think that deserves a text, don’t you?.";
 finalReveal.style.display="block";
 }
-/* NO EFFECT 10/10 */
+
+/* NO EFFECT */
 function noPath(){
+noSound.play();
 nextScene(4);
-// collapse UI
-scene4.style.animation="collapse 0.8s ease";
-// vignette darken
+
+document.body.classList.add("sadMode");
+document.getElementById("scene4").style.animation="shake 0.6s ease";
 vignette.style.opacity="1";
+
+/* YOUR ORIGINAL TEXT BELOW — UNCHANGED */
 setTimeout(()=>{
 resultTitle.innerHTML="Why did you even click this .";
 },600);
+
 setTimeout(()=>{
 resultText.innerHTML="Come on Fousiya don't do this to me😭 ";
 },1600);
+
 setTimeout(()=>{
 resultText.innerHTML="Haha that's Fine… I'm kidding. I completely respect that.";
 },3200);
+
 setTimeout(()=>{
 finalExtra.innerHTML="IK You have no clue about me but that's completely valid. I just think you’re someone worth knowing better. If you ever feel the same Hit me Up, I’m around. We can still stop by Siri sometime.";
 finalReveal.style.display="block";
 },5000);
+
 setTimeout(()=>{
 vignette.style.opacity="0";
+document.body.classList.remove("sadMode");
 },6500);
-} 
+}
+
 </script>
 </body>
 </html>
