@@ -29,7 +29,6 @@ transition:filter 1.2s ease, transform 1.2s ease;
 50%{background-position:100% 50%}
 }
 
-/* SCENES */
 .scene{
 display:none;
 text-align:center;
@@ -89,37 +88,6 @@ text-decoration:none;
 font-weight:600;
 }
 
-/* ORIGINAL EFFECTS */
-@keyframes glowPulse{
-0%{box-shadow:0 0 20px #ff4d6d}
-50%{box-shadow:0 0 60px #ff99ac}
-100%{box-shadow:0 0 20px #ff4d6d}
-}
-
-@keyframes confettiFall{
-0%{transform:translateY(-100vh) rotate(0deg);opacity:1}
-100%{transform:translateY(100vh) rotate(720deg);opacity:0}
-}
-
-@keyframes shake{
-0%,100%{transform:translateX(0)}
-20%{transform:translateX(-12px)}
-40%{transform:translateX(12px)}
-60%{transform:translateX(-8px)}
-80%{transform:translateX(8px)}
-}
-
-/* CINEMATIC ADDITIONS */
-.flash{
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:white;
-opacity:0;
-pointer-events:none;
-z-index:999;
-}
-
 @keyframes flashBang{
 0%{opacity:1}
 100%{opacity:0}
@@ -160,6 +128,16 @@ opacity:0;
 transition:0.8s;
 z-index:4;
 }
+
+.flash{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:white;
+opacity:0;
+pointer-events:none;
+z-index:999;
+}
 </style>
 </head>
 
@@ -170,7 +148,7 @@ z-index:4;
 <div class="scene active" id="scene1">
 <h1>Hey Fousiya💕</h1>
 <p id="introText"></p>
-<button class="btn primary" onclick="nextScene(2)">Continue</button>
+<button class="btn primary" onclick="startMusic(); nextScene(2);">Continue</button>
 </div>
 
 <div class="scene" id="scene2">
@@ -182,7 +160,7 @@ z-index:4;
 
 <div class="scene" id="scene3">
 <h1>One Question</h1>
-<p>Will you be my Valentine? </p>
+<p>Will you be my Valentine?</p>
 <button class="btn primary" onclick="yesPath()">Yes</button>
 <button class="btn secondary" onclick="noPath()">No</button>
 <button class="btn secondary" onclick="nextScene(2)">Back</button>
@@ -201,6 +179,14 @@ z-index:4;
 
 <script>
 
+const introText = document.getElementById("introText");
+const storyText = document.getElementById("storyText");
+const resultTitle = document.getElementById("resultTitle");
+const resultText = document.getElementById("resultText");
+const finalExtra = document.getElementById("finalExtra");
+const finalReveal = document.getElementById("finalReveal");
+const vignette = document.getElementById("vignette");
+
 /* AUDIO */
 const yesSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-orchestral-win-2018.mp3");
 const noSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-dark-impact-hit-2608.mp3");
@@ -212,12 +198,25 @@ sadAmbience.loop = true;
 bgMusic.volume = 0.4;
 sadAmbience.volume = 0.5;
 
-/* FLASH */
-const flash = document.createElement("div");
-flash.classList.add("flash");
-document.body.appendChild(flash);
+/* Unlock audio for mobile */
+let audioUnlocked = false;
+document.addEventListener("click", function unlockAudio() {
+    if (!audioUnlocked) {
+        bgMusic.play().then(() => {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            audioUnlocked = true;
+        }).catch(()=>{});
+    }
+}, { once: true });
 
-/* SCENE */
+function startMusic(){
+    if(bgMusic.paused){
+        bgMusic.play().catch(err=>console.log(err));
+    }
+}
+
+/* SCENES */
 function nextScene(n){
 document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active'));
 setTimeout(()=>document.getElementById('scene'+n).classList.add('active'),100);
@@ -239,48 +238,27 @@ setTimeout(()=>{
 typeText(storyText,"We don’t really know each other yet, but from what I’ve seen, your vibe’s kinda unmatched. I’d genuinely love to get to know you better if you’re cool with that.");
 },1800);
 
-/* MUSIC START */
-document.body.addEventListener("click",()=>{
-if(bgMusic.paused) bgMusic.play();
-},{once:true});
-
 /* YES */
 function yesPath(){
 bgMusic.pause();
 sadAmbience.pause();
-yesSound.play();
-
-flash.style.animation="flashBang 0.6s forwards";
-flash.style.opacity="1";
-setTimeout(()=>flash.style.opacity="0",600);
+yesSound.play().catch(()=>{});
 
 document.body.style.animation="zoomIn 1.2s forwards";
 
-for(let i=0;i<150;i++){
-let heart=document.createElement("div");
-heart.innerHTML=["💖","💘","💕","✨"][Math.floor(Math.random()*4)];
-heart.style.position="fixed";
-heart.style.left=Math.random()*100+"vw";
-heart.style.bottom="0";
-heart.style.fontSize=(18+Math.random()*28)+"px";
-heart.style.animation="floatUp 3s ease-out forwards";
-document.body.appendChild(heart);
-setTimeout(()=>heart.remove(),3000);
-}
-
 nextScene(4);
 
-resultTitle.innerHTML="Wait… hold on. Are you actually serious right now? ";
+resultTitle.innerHTML="Wait… are you actually serious right now?";
 resultText.innerHTML="Okay wow. You just low-key made my entire day.";
-finalExtra.innerHTML="I actually made this. Yeah — it’s Ameer, your friendly neighbourhood senior. And since you made it all the way here… I think that deserves a text, don’t you?.";
+finalExtra.innerHTML="I actually made this. Yeah — it’s Ameer. Since you made it this far… I think that deserves a text, don’t you?";
 finalReveal.style.display="block";
 }
 
 /* NO */
 function noPath(){
 bgMusic.pause();
-sadAmbience.play();
-noSound.play();
+sadAmbience.play().catch(()=>{});
+noSound.play().catch(()=>{});
 
 document.body.style.animation="glitch 0.5s linear 3";
 document.body.classList.add("sadMode");
@@ -288,20 +266,28 @@ vignette.style.opacity="1";
 
 nextScene(4);
 
-setTimeout(()=>{resultTitle.innerHTML="Why did you even click this .";},600);
-setTimeout(()=>{resultText.innerHTML="Come on Fousiya don't do this to me😭 ";},1600);
-setTimeout(()=>{resultText.innerHTML="Haha that's Fine… I'm kidding. I completely respect that.";},3200);
-setTimeout(()=>
-finalExtra.innerHTML="I know you don’t really know me yet and that’s totally fair. I just feel like you’re someone worth getting to know. If you ever feel the same, hit me up. Diet Coke and cigarettes is on me you up?";
+setTimeout(()=>{resultTitle.innerHTML="Why did you even click this.";},600);
+setTimeout(()=>{resultText.innerHTML="Come on Fousiya don’t do this to me 😭";},1600);
+
+setTimeout(()=>{
+resultText.innerHTML="Haha that's fine… I'm kidding. I completely respect that.";
+},3200);
+
+setTimeout(()=>{
+resultText.innerHTML += "<br><br>And honestly… since you even clicked this and stayed till here, that already means something. That’s more than enough for me.";
+},4300);
+
+setTimeout(()=>{
+finalExtra.innerHTML="I know you don’t really know me yet and that’s totally fair. If you ever feel the same, hit me up.";
 finalReveal.style.display="block";
-},5000);
+},5500);
 
 setTimeout(()=>{
 vignette.style.opacity="0";
 document.body.classList.remove("sadMode");
 sadAmbience.pause();
-bgMusic.play();
-},6500);
+bgMusic.play().catch(()=>{});
+},7000);
 }
 
 </script>
